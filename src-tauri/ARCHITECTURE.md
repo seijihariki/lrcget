@@ -35,7 +35,12 @@ src-tauri/
 │   ├── parser/              # File format parsers
 │   │   └── lrc.rs           # LRC lyrics parser (replaces lrc crate)
 │   ├── word_segmentation.rs # Charabia-based tokenization + separator-merging logic/tests
-│   ├── export.rs            # Manual sidecar/embed export helpers
+│   ├── export/              # Manual sidecar/embed export helpers
+│   │   ├── mod.rs           # Export format registry and shared types
+│   │   ├── txt.rs           # Plain text sidecar export (.txt)
+│   │   ├── lrc.rs           # Synced LRC sidecar export (.lrc)
+│   │   ├── elrc.rs          # Word-synced enhanced LRC export (.elrc)
+│   │   └── embedded.rs      # Embedded metadata export (MP3/FLAC)
 │   ├── lyricsfile.rs        # YAML lyricsfile helpers
 │   ├── player.rs            # Kira audio playback
 │   ├── persistent_entities.rs # Track/Album/Artist structs
@@ -187,14 +192,15 @@ Playback speed:
 - `set_playback_speed()` command updates the active sound handle rate (clamped 0.5x–2.0x)
 - Frontend receives playback speed via `player-state` events
 
-### Export Module (`export.rs`)
+### Export Module (`export/`)
 
-Manual lyrics export to sidecar files (`.txt`, `.lrc`) and embedded metadata.
+Manual lyrics export to sidecar files (`.txt`, `.lrc`, `.elrc`) and embedded metadata.
 
 ```rust
 pub enum ExportFormat {
     Txt,        // Plain text sidecar file
     Lrc,        // Synced LRC sidecar file
+    Elrc,       // Word-synced enhanced LRC sidecar file
     Embedded,   // Embedded in audio metadata (MP3/FLAC)
 }
 
@@ -205,6 +211,9 @@ pub struct ExportResult {
     pub message: String,
 }
 ```
+
+**Format Registry:**
+- `export/mod.rs` registers format handlers and dispatches `export_track_format()` via `ExportFormat`
 
 **Key Functions:**
 - `export_track()` - Export a single track to multiple formats
@@ -248,7 +257,7 @@ pub fn format_timestamp(timestamp_ms: i64) -> String;
 
 **Used by:**
 - `lyricsfile.rs` - Parsing embedded LRC lyrics during import
-- `export.rs` - Converting LRC to SYLT format for MP3 embedding
+- `export/embedded.rs` - Converting LRC to SYLT format for MP3 embedding
 
 ### LRCLIB API (`lrclib/`)
 

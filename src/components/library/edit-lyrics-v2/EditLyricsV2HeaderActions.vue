@@ -15,7 +15,9 @@
         <template #popper>
           <div class="text-xs font-bold">
             Save lyrics
-            <span class="text-[0.65rem] text-neutral-800 bg-neutral-50 px-1 rounded-full">Ctrl+S</span>
+            <span class="text-[0.65rem] text-neutral-800 bg-neutral-50 px-1 rounded-full"
+              >Ctrl+S</span
+            >
           </div>
         </template>
       </VTooltip>
@@ -60,6 +62,15 @@
                 name="export-synced-lrc"
               >
                 <span class="dropdown-label">Synced lyrics (.lrc)</span>
+              </CheckboxButton>
+            </label>
+            <label class="dropdown-item">
+              <CheckboxButton
+                id="export-synced-elrc"
+                v-model="exportSyncedElrc"
+                name="export-synced-elrc"
+              >
+                <span class="dropdown-label">Word-synced lyrics (.elrc)</span>
               </CheckboxButton>
             </label>
 
@@ -123,6 +134,7 @@ const emit = defineEmits(['save', 'save-and-publish', 'export', 'debug'])
 
 const exportPlainText = ref(false)
 const exportSyncedLrc = ref(false)
+const exportSyncedElrc = ref(false)
 const embedIntoTrack = ref(false)
 const tryEmbedLyrics = ref(false)
 
@@ -134,7 +146,8 @@ const refreshEmbedConfig = async () => {
 onMounted(refreshEmbedConfig)
 
 const hasSelectedExportFormat = computed(
-  () => exportPlainText.value || exportSyncedLrc.value || embedIntoTrack.value
+  () =>
+    exportPlainText.value || exportSyncedLrc.value || exportSyncedElrc.value || embedIntoTrack.value
 )
 
 const handleExportClick = () => {
@@ -145,6 +158,7 @@ const handleExportClick = () => {
   emit('export', {
     plainText: exportPlainText.value,
     syncedLrc: exportSyncedLrc.value,
+    syncedElrc: exportSyncedElrc.value,
     embedIntoTrack: embedIntoTrack.value,
   })
 }

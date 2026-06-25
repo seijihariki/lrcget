@@ -53,6 +53,7 @@ struct FlagLyricsProgress {
 enum ExportLyricsFormat {
     Txt,
     Lrc,
+    Elrc,
     Embedded,
 }
 
@@ -92,6 +93,7 @@ impl From<ExportLyricsFormat> for export::ExportFormat {
         match value {
             ExportLyricsFormat::Txt => export::ExportFormat::Txt,
             ExportLyricsFormat::Lrc => export::ExportFormat::Lrc,
+            ExportLyricsFormat::Elrc => export::ExportFormat::Elrc,
             ExportLyricsFormat::Embedded => export::ExportFormat::Embedded,
         }
     }

@@ -103,7 +103,7 @@
       </button>
 
       <button
-        v-if="isExporting && (exportedCount + skippedCount + errorCount) < exportTotalCount"
+        v-if="isExporting && exportedCount + skippedCount + errorCount < exportTotalCount"
         class="button button-working h-full min-w-[7rem] px-2 text-xs rounded-full"
         @click.prevent="$emit('showExportViewer')"
       >
@@ -158,6 +158,15 @@
                 name="export-synced-lrc"
               >
                 <span class="dropdown-label">Synced lyrics (.lrc)</span>
+              </CheckboxButton>
+            </label>
+            <label class="dropdown-item">
+              <CheckboxButton
+                id="export-synced-elrc"
+                v-model="exportSyncedElrc"
+                name="export-synced-elrc"
+              >
+                <span class="dropdown-label">Word-synced lyrics (.elrc)</span>
               </CheckboxButton>
             </label>
 
@@ -255,6 +264,7 @@ const emit = defineEmits([
 
 const exportPlainText = ref(false)
 const exportSyncedLrc = ref(false)
+const exportSyncedElrc = ref(false)
 const embedIntoTrack = ref(false)
 const tryEmbedLyrics = ref(false)
 
@@ -266,7 +276,8 @@ const refreshEmbedConfig = async () => {
 onMounted(refreshEmbedConfig)
 
 const hasSelectedExportFormat = computed(
-  () => exportPlainText.value || exportSyncedLrc.value || embedIntoTrack.value
+  () =>
+    exportPlainText.value || exportSyncedLrc.value || exportSyncedElrc.value || embedIntoTrack.value
 )
 
 const handleExportClick = () => {
@@ -277,13 +288,25 @@ const handleExportClick = () => {
   emit('exportAllLyrics', {
     plainText: exportPlainText.value,
     syncedLrc: exportSyncedLrc.value,
+    syncedElrc: exportSyncedElrc.value,
     embedIntoTrack: embedIntoTrack.value,
   })
 }
 
-const { isDownloading, totalCount: downloadTotalCount, downloadedCount, addToQueue } = useDownloader()
+const {
+  isDownloading,
+  totalCount: downloadTotalCount,
+  downloadedCount,
+  addToQueue,
+} = useDownloader()
 
-const { isExporting, exportedCount, skippedCount, errorCount, totalCount: exportTotalCount } = useExporter()
+const {
+  isExporting,
+  exportedCount,
+  skippedCount,
+  errorCount,
+  totalCount: exportTotalCount,
+} = useExporter()
 
 const isBuildingQueue = ref(false)
 

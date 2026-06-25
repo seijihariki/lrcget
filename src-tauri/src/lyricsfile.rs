@@ -1,4 +1,4 @@
-use crate::parser::lrc::{parse_lrc, format_timestamp};
+use crate::parser::lrc::{format_timestamp, parse_lrc};
 use crate::persistent_entities::PersistentTrack;
 use crate::utils::strip_timestamp;
 use anyhow::Result;
@@ -47,6 +47,7 @@ impl LyricsfileTrackMetadata {
 pub struct ParsedLyricsfile {
     pub plain_lyrics: Option<String>,
     pub synced_lyrics: Option<String>,
+    pub word_synced_lyrics: Option<String>,
     pub is_instrumental: bool,
 }
 
@@ -172,6 +173,11 @@ pub fn parse_lyricsfile(lyricsfile: &str) -> Result<ParsedLyricsfile> {
     } else {
         lines_to_lrc(&document.lines)
     };
+    let word_synced_lyrics = if is_instrumental {
+        Some(INSTRUMENTAL_LRC.to_string())
+    } else {
+        lines_to_elrc(&document.lines)
+    };
 
     let plain_lyrics = normalize_non_empty(document.plain.as_deref()).or_else(|| {
         synced_lyrics
@@ -183,6 +189,7 @@ pub fn parse_lyricsfile(lyricsfile: &str) -> Result<ParsedLyricsfile> {
     Ok(ParsedLyricsfile {
         plain_lyrics,
         synced_lyrics,
+        word_synced_lyrics,
         is_instrumental,
     })
 }
@@ -261,6 +268,53 @@ fn lines_to_lrc(lines: &[LyricsfileLine]) -> Option<String> {
     }
 
     normalize_non_empty(Some(output.as_str()))
+}
+
+fn lines_to_elrc(lines: &[LyricsfileLine]) -> Option<String> {
+    let mut output = String::new();
+    let mut has_word_sync = false;
+
+    for line in lines {
+        output.push_str(&format!("{}", format_timestamp_ms(line.start_ms, '[', ']')));
+
+        if line.words.is_empty() {
+            output.push_str(&line.text);
+            output.push('\n');
+            continue;
+        }
+
+        let mut first_word = true;
+
+        for word in &line.words {
+            has_word_sync = true;
+
+            if !first_word {
+                output.push_str(&format!("{}", format_timestamp_ms(word.start_ms, '<', '>')));
+            }
+            output.push_str(&word.text);
+            first_word = false;
+        }
+
+        output.push('\n');
+    }
+
+    if !has_word_sync {
+        return None;
+    }
+
+    normalize_non_empty(Some(output.as_str()))
+}
+
+fn format_timestamp_ms(timestamp_ms: i64, start_delimiter: char, end_delimiter: char) -> String {
+    let safe_ms = timestamp_ms.max(0);
+    let minutes = safe_ms / 60_000;
+    let seconds = (safe_ms % 60_000) / 1_000;
+    let milliseconds = safe_ms % 1_000;
+
+    format!(
+        "{}{:02}:{:02}.{:03}{}",
+        start_delimiter, minutes, seconds, milliseconds, end_delimiter
+    )
 }
 
 fn duration_to_ms(duration: f64) -> Option<i64> {

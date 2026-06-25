@@ -13,6 +13,7 @@ const totalCount = ref(0)
 const exportFormats = ref({
   plainText: false,
   syncedLrc: false,
+  syncedElrc: false,
   embedIntoTrack: false,
 })
 
@@ -28,6 +29,7 @@ const exportTrack = async track => {
     const formats = []
     if (exportFormats.value.plainText) formats.push('txt')
     if (exportFormats.value.syncedLrc) formats.push('lrc')
+    if (exportFormats.value.syncedElrc) formats.push('elrc')
     if (exportFormats.value.embedIntoTrack) formats.push('embedded')
 
     const result = await invoke('export_track_lyrics', {
